@@ -7,14 +7,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['foto'])) {
     $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
     $allowed = ['jpg', 'jpeg', 'png', 'gif'];
 
-    if (in_array($ext, $allowed) && $file['error'] === 0 && getimagesize($file['tmp_name'])) {
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0777, true);
-        }
-
+    if (in_array($ext, $allowed) && $file['error'] === 0) {
         $novoNome = uniqid("foto_", true) . "." . $ext;
         $destino = $uploadDir . $novoNome;
-
         if (move_uploaded_file($file['tmp_name'], $destino)) {
             $mensagemUpload = "Imagem enviada com sucesso!";
         } else {
@@ -29,71 +24,120 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['foto'])) {
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
-  <title>Galeria do Dia dos Namorados 💘</title>
+  <title>Galeria do Dia dos Namorados</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #fff0f6;
-      text-align: center;
+      margin: 0;
+      padding: 0;
+      background: #ffe6f0;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    main {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       padding: 20px;
     }
+
     h1 {
       color: #d63384;
+      font-size: 2.5em;
+      text-align: center;
+      margin-bottom: 20px;
     }
+
+    #btn {
+      padding: 12px 24px;
+      background: #ff4d88;
+      color: white;
+      border: none;
+      border-radius: 30px;
+      font-size: 1em;
+      cursor: pointer;
+    }
+
+    #btn:hover {
+      background: #e6005c;
+    }
+
     #mensagem {
-      margin: 20px;
-      font-size: 20px;
-      color: #ff0066;
+      margin-top: 20px;
+      font-size: 1.2em;
+      color: #660033;
+      text-align: center;
+      display: none;
+      max-width: 80%;
     }
-    form {
-      margin: 20px 0;
-    }
-    .mensagem-upload {
-      color: green;
-      font-weight: bold;
-    }
+
     .galeria {
-      display: flex;
+      margin-top: 30px;
+      display: none;
       flex-wrap: wrap;
       justify-content: center;
       gap: 15px;
-      margin-top: 20px;
     }
+
     .galeria img {
-      width: 150px;
-      height: auto;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      width: 180px;
+      height: 180px;
+      object-fit: cover;
+      border-radius: 15px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      transition: transform 0.3s;
     }
+
+    .galeria img:hover {
+      transform: scale(1.05);
+    }
+
+    form {
+      margin-top: 30px;
+      text-align: center;
+    }
+
+    input[type="file"] {
+      margin: 10px auto;
+    }
+
+    .mensagem-upload {
+      margin-top: 10px;
+      color: green;
+    }
+
     .heart {
-      position: fixed;
-      top: -50px;
-      width: 30px;
-      height: 30px;
+      position: absolute;
+      width: 20px;
+      height: 20px;
       background: red;
       transform: rotate(45deg);
-      animation: flutuar 6s linear infinite;
+      animation: float 8s infinite ease-in;
     }
+
     .heart::before,
     .heart::after {
-      content: "";
+      content: '';
       position: absolute;
-      width: 30px;
-      height: 30px;
+      width: 20px;
+      height: 20px;
       background: red;
       border-radius: 50%;
     }
-    .heart::before {
-      top: -15px;
-      left: 0;
-    }
-    .heart::after {
-      top: 0;
-      left: -15px;
-    }
-    @keyframes flutuar {
-      0% { transform: translateY(0) rotate(45deg); opacity: 1; }
-      100% { transform: translateY(-100vh) rotate(45deg); opacity: 0; }
+
+    .heart::before { top: -10px; left: 0; }
+    .heart::after  { top: 0; left: -10px; }
+
+    @keyframes float {
+      0% {
+        transform: translateY(0) rotate(45deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-100vh) rotate(45deg);
+        opacity: 0;
+      }
     }
   </style>
 </head>
@@ -106,19 +150,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['foto'])) {
     <form method="POST" enctype="multipart/form-data">
       <label>Envie sua foto especial:</label><br>
       <input type="file" name="foto" accept="image/*" required>
-      <br><br>
+      <br>
       <input type="submit" value="Enviar Foto">
     </form>
     <?php if (!empty($mensagemUpload)) echo "<div class='mensagem-upload'>$mensagemUpload</div>"; ?>
 
     <div class="galeria" id="galeria">
       <?php
-        if (is_dir($uploadDir)) {
-          $arquivos = array_diff(scandir($uploadDir, SCANDIR_SORT_DESCENDING), ['.', '..']);
-          foreach ($arquivos as $arquivo) {
-              $caminho = $uploadDir . $arquivo;
-              echo "<img src='" . htmlspecialchars($caminho) . "' alt='Foto'>";
-          }
+        $arquivos = glob("imagens/*.{jpg,jpeg,png,gif}", GLOB_BRACE);
+        foreach ($arquivos as $img) {
+            echo "<img src='$img' alt='Foto'>";
         }
       ?>
     </div>
@@ -129,41 +170,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['foto'])) {
     const msg = document.getElementById('mensagem');
     const galeria = document.getElementById('galeria');
 
-    const todasFrases = [
+    const frases = [
       "Você é meu hoje, meu amanhã e meu sempre. ❤️",
       "Te amar é a melhor parte do meu dia. 🌹",
       "Com você, todos os dias são especiais. 💑",
       "O amor da minha vida tem seu nome. 💖",
       "Nos seus olhos encontrei meu lar. ✨",
-      "Te escolher foi o melhor que já fiz. 💘",
       "Você me completa de um jeito que ninguém mais conseguiria. 💞",
       "Amar você é como respirar: simplesmente acontece. 💓",
       "Desde que te conheci, até o silêncio tem mais significado. 💗"
     ];
 
-    let frases = [];
     let index = 0;
-
-    function embaralharFrases() {
-      frases = [...todasFrases].sort(() => Math.random() - 0.5);
-      index = 0;
-    }
-
-    embaralharFrases();
-
     btn.addEventListener('click', () => {
-      msg.style.display = 'block';
       galeria.style.display = 'flex';
-
-      msg.innerText = frases[index];
-      index++;
-
-      if (index >= frases.length) {
-        setTimeout(() => {
-          embaralharFrases();
-          msg.innerText = "Vamos de novo? Porque meu amor por você nunca acaba! 💘";
-        }, 2000);
-      }
+      msg.style.display = 'block';
+      msg.textContent = frases[index];
+      index = (index + 1) % frases.length;
     });
 
     function criarCoracao() {
