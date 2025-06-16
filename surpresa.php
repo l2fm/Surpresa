@@ -1,15 +1,4 @@
 <?php
-// Conexão com o banco de dados
-$host = 'localhost';
-$user = 'root';     // ajuste conforme seu ambiente
-$pass = '';         // coloque a senha do MySQL se houver
-$dbname = 'galeria_namorados';
-
-$conn = new mysqli($host, $user, $pass, $dbname);
-if ($conn->connect_error) {
-    die("Erro na conexão: " . $conn->connect_error);
-}
-
 $uploadDir = 'imagens/';
 $mensagemUpload = "";
 
@@ -18,16 +7,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['foto'])) {
     $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
     $allowed = ['jpg', 'jpeg', 'png', 'gif'];
 
-    if (in_array($ext, $allowed) && $file['error'] === 0) {
+    if (in_array($ext, $allowed) && $file['error'] === 0 && getimagesize($file['tmp_name'])) {
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
+
         $novoNome = uniqid("foto_", true) . "." . $ext;
         $destino = $uploadDir . $novoNome;
-        if (move_uploaded_file($file['tmp_name'], $destino)) {
-            // Gravar no banco
-            $stmt = $conn->prepare("INSERT INTO fotos (caminho) VALUES (?)");
-            $stmt->bind_param("s", $destino);
-            $stmt->execute();
-            $stmt->close();
 
+        if (move_uploaded_file($file['tmp_name'], $destino)) {
             $mensagemUpload = "Imagem enviada com sucesso!";
         } else {
             $mensagemUpload = "Erro ao salvar a imagem.";
@@ -41,10 +29,72 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['foto'])) {
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
-  <title>Galeria com Banco de Dados</title>
+  <title>Galeria do Dia dos Namorados 💘</title>
   <style>
-    /* ... (mesmo CSS anterior omitido para focar na lógica) ... */
-    /* use o CSS já gerado anteriormente */
+    body {
+      font-family: Arial, sans-serif;
+      background: #fff0f6;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 {
+      color: #d63384;
+    }
+    #mensagem {
+      margin: 20px;
+      font-size: 20px;
+      color: #ff0066;
+    }
+    form {
+      margin: 20px 0;
+    }
+    .mensagem-upload {
+      color: green;
+      font-weight: bold;
+    }
+    .galeria {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+      margin-top: 20px;
+    }
+    .galeria img {
+      width: 150px;
+      height: auto;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+    .heart {
+      position: fixed;
+      top: -50px;
+      width: 30px;
+      height: 30px;
+      background: red;
+      transform: rotate(45deg);
+      animation: flutuar 6s linear infinite;
+    }
+    .heart::before,
+    .heart::after {
+      content: "";
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      background: red;
+      border-radius: 50%;
+    }
+    .heart::before {
+      top: -15px;
+      left: 0;
+    }
+    .heart::after {
+      top: 0;
+      left: -15px;
+    }
+    @keyframes flutuar {
+      0% { transform: translateY(0) rotate(45deg); opacity: 1; }
+      100% { transform: translateY(-100vh) rotate(45deg); opacity: 0; }
+    }
   </style>
 </head>
 <body>
@@ -56,16 +106,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['foto'])) {
     <form method="POST" enctype="multipart/form-data">
       <label>Envie sua foto especial:</label><br>
       <input type="file" name="foto" accept="image/*" required>
-      <br>
+      <br><br>
       <input type="submit" value="Enviar Foto">
     </form>
     <?php if (!empty($mensagemUpload)) echo "<div class='mensagem-upload'>$mensagemUpload</div>"; ?>
 
     <div class="galeria" id="galeria">
       <?php
-        $result = $conn->query("SELECT caminho FROM fotos ORDER BY data_envio DESC");
-        while ($row = $result->fetch_assoc()) {
-            echo "<img src='" . htmlspecialchars($row['caminho']) . "' alt='Foto'>";
+        if (is_dir($uploadDir)) {
+          $arquivos = array_diff(scandir($uploadDir, SCANDIR_SORT_DESCENDING), ['.', '..']);
+          foreach ($arquivos as $arquivo) {
+              $caminho = $uploadDir . $arquivo;
+              echo "<img src='" . htmlspecialchars($caminho) . "' alt='Foto'>";
+          }
         }
       ?>
     </div>
@@ -126,4 +179,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['foto'])) {
   </script>
 </body>
 </html>
-<?php $conn->close(); ?>
