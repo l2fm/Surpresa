@@ -13,12 +13,16 @@
       padding: 0;
       background: #ffe6f0;
       font-family: 'Segoe UI', sans-serif;
-      overflow: hidden;
+      overflow-x: hidden;
+    }
+
+    main {
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100vh;
+      padding: 20px;
     }
 
     h1 {
@@ -50,6 +54,27 @@
       text-align: center;
       display: none;
       max-width: 80%;
+    }
+
+    .galeria {
+      margin-top: 30px;
+      display: none;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+    }
+
+    .galeria img {
+      width: 180px;
+      height: 180px;
+      object-fit: cover;
+      border-radius: 15px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      transition: transform 0.3s;
+    }
+
+    .galeria img:hover {
+      transform: scale(1.05);
     }
 
     .heart {
@@ -94,19 +119,31 @@
   </style>
 </head>
 <body>
-  <h1>Feliz Dia dos Namorados 💘</h1>
-  <button id="btn">Clique para ver uma surpresa 💌</button>
-  <div id="mensagem">Você é a razão do meu sorriso todos os dias. Te amo! ❤️</div>
+  <main>
+    <h1>Feliz Dia dos Namorados 💘</h1>
+    <button id="btn">Clique para ver uma surpresa 💌</button>
+    <div id="mensagem">Você é a razão do meu sorriso todos os dias. Te amo! ❤️</div>
+
+    <div class="galeria" id="galeria">
+      <!-- Substitua os nomes dos arquivos pelas suas fotos reais -->
+      <img src="imagens/foto1.jpg" alt="Foto 1">
+      <img src="imagens/foto2.jpg" alt="Foto 2">
+      <img src="imagens/foto3.jpg" alt="Foto 3">
+      <img src="imagens/foto4.jpg" alt="Foto 4">
+    </div>
+  </main>
 
   <script>
     const btn = document.getElementById('btn');
     const msg = document.getElementById('mensagem');
+    const galeria = document.getElementById('galeria');
 
     btn.addEventListener('click', () => {
       msg.style.display = 'block';
+      galeria.style.display = 'flex';
     });
 
-    // Função para criar corações flutuando
+    // Corações flutuando
     function criarCoracao() {
       const heart = document.createElement('div');
       heart.classList.add('heart');
