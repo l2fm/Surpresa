@@ -141,34 +141,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['foto'])) {
       border-radius: 10px;
     }
 
-    .heart {
-      position: absolute;
-      width: 20px;
-      height: 20px;
-      background: red;
-      transform: rotate(45deg);
-      animation: float 8s infinite ease-in;
-      z-index: 998;
-    }
-
-    .heart::before,
-    .heart::after {
-      content: '';
-      position: absolute;
-      width: 20px;
-      height: 20px;
-      background: red;
-      border-radius: 50%;
-    }
-
-    .heart::before { top: -10px; left: 0; }
-    .heart::after  { top: 0; left: -10px; }
-
-    @keyframes float {
-      0%   { transform: translateY(0) rotate(45deg); opacity: 1; }
-      100% { transform: translateY(-100vh) rotate(45deg); opacity: 0; }
-    }
-
     @media (max-width: 768px) {
       .galeria img { width: 45%; height: auto; }
       h1 { font-size: 1.8em; }
@@ -249,20 +221,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['foto'])) {
     zoom.addEventListener('click', () => {
       zoom.style.display = 'none';
     });
-
-    // Corações no clique ou toque
-    document.addEventListener('click', criarCoracao);
-    document.addEventListener('touchstart', criarCoracao);
-
-    function criarCoracao(e) {
-      const heart = document.createElement('div');
-      heart.classList.add('heart');
-      heart.style.left = (e.clientX || e.touches[0].clientX) + 'px';
-      heart.style.top = (e.clientY || e.touches[0].clientY) + 'px';
-      heart.style.animationDuration = 4 + Math.random() * 4 + 's';
-      document.body.appendChild(heart);
-      setTimeout(() => heart.remove(), 8000);
-    }
   </script>
 </body>
 </html>
